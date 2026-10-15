@@ -16,6 +16,36 @@ libxkbcommon development files, and Python 3 for the installer. At runtime,
 install Noto Sans or DejaVu Sans in a standard system font directory.
 Dependencies are managed by your distribution; driftwm must already be installed.
 
+### Install with curl
+
+With the prerequisites above installed, run:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Hell077/DriftINK/main/install.sh | sh
+```
+
+This downloads the source archive from GitHub's `main` branch, builds it locally
+with the lockfile, and installs it for your user. Git is not required. Rust is
+required; this does not download a prebuilt release. Temporary source/build files
+are removed on completion or failure. Cargo's normal dependency cache is retained.
+
+Custom location (arguments after `sh -s --` are passed to the installer):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Hell077/DriftINK/main/install.sh | sh -s -- --prefix "$HOME/Applications/driftink"
+```
+
+To select a source tag or commit, set `DRIFTINK_REF` for `sh`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Hell077/DriftINK/main/install.sh | DRIFTINK_REF=COMMIT_SHA sh
+```
+
+Replace `COMMIT_SHA` with an existing commit or tag. Downloading a specific script
+revision is also possible by replacing `main` in the raw URL with that same ref.
+
+### Install from a checkout
+
 Download/extract the source archive, or clone the repository:
 
 ```sh
@@ -194,6 +224,12 @@ Stop the application, then run from the source directory:
 ```sh
 driftink quit
 python3 scripts/install-user.py --uninstall
+```
+
+Without a source checkout, uninstall through the same GitHub bootstrap:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Hell077/DriftINK/main/install.sh | sh -s -- --uninstall
 ```
 
 Use the same `--prefix` and `--data-dir` overrides if you supplied them during
