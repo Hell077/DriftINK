@@ -1,7 +1,4 @@
-mod camera;
-mod ipc;
-mod wayland;
-use ipc::Result;
+use driftink::{ipc, ipc::Result, wayland};
 
 fn main() {
     if let Err(error) = run() {
