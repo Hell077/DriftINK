@@ -1,0 +1,12 @@
+[package]
+name = "driftink"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+calloop = "0.14"
+calloop-wayland-source = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+smithay-client-toolkit = { version = "0.20", default-features = false }
+wayland-client = "0.31"

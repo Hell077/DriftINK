@@ -1,0 +1,4 @@
+# Merge manually into driftwm config only after approving the integration.
+[[window_rules]]
+app_id = "driftink-poc-canvas"
+position = [0, 0]
