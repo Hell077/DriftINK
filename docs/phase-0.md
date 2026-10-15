@@ -100,3 +100,22 @@ real-session `poc overlay 2` received configure events for both HDMI-A-1
 Automated Rust checks passed: fmt, Clippy with warnings denied, 2 unit tests,
 check, and release build. No real-session config was modified. The optional
 canvas rule is prepared for review in `examples/poc-rule.toml`.
+
+### Input acceptance and implementation decision
+
+A disposable Xvfb (:95) hosted the installed driftwm 0.19.0 `winit` backend.
+`scripts/check-input.py wayland-2 :95` injected real XTest mouse events into that
+isolated backend. A native xdg-toplevel (`examples/input_probe.rs`) received the
+click through both probe strategies. The test passed without touching physical
+mouse input, the installed compositor, or the desktop config.
+
+Together with the screenshot pan/zoom assertions, this satisfies the initial
+integration proof: fixed world geometry, working normal window input, and no
+compositor modification. Physical multi-monitor input and hotplug checks remain
+MVP acceptance work, rather than blockers for starting the drawing implementation.
+
+The first usable application uses **strategy B**: per-output bottom layers for
+persistent drawings and temporary overlay layers for input and the sidebar.
+This avoids installing window rules and allows an unbounded world document with
+viewport-sized allocations. Native canvas chunks remain a possible optimization;
+frame synchronization at high refresh rates still needs measurement.
