@@ -16,8 +16,14 @@ libxkbcommon development files, and Python 3 for the installer. At runtime,
 install Noto Sans or DejaVu Sans in a standard system font directory.
 Dependencies are managed by your distribution; driftwm must already be installed.
 
-Download/extract the source archive, or clone the repository once its URL is
-available. From the project directory:
+Download/extract the source archive, or clone the repository:
+
+```sh
+git clone https://github.com/Hell077/DriftINK.git
+cd DriftINK
+```
+
+From the project directory:
 
 ```sh
 python3 scripts/install-user.py
@@ -197,3 +203,8 @@ added yourself. Deleting a development checkout does not delete an installed cop
 
 See [architecture](docs/architecture.md), [Phase 0 evidence](docs/phase-0.md) and
 [roadmap](docs/roadmap.md).
+
+## License
+
+Licensed under either the [MIT License](LICENSE-MIT) or the
+[Apache License, Version 2.0](LICENSE-APACHE), at your option.
