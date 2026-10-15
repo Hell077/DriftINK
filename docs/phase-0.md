@@ -47,10 +47,10 @@ Source inspection: `handlers/layer_shell.rs` promotes a matching namespace with
 needed. `render/layers.rs` projects these surfaces into visible viewports.
 Persistent geometry can therefore remain independent of monitor resolution.
 
-Initial choice: strategy A for bounded persisted drawing chunks, with a later
-screen-space input surface for editing. This is provisional until real-session
-input and multi-monitor acceptance tests pass. Strategy B remains an experiment
-and fallback; do not assume IPC synchronization is visually exact at 180 Hz.
+Both strategies are viable. The application now selects strategy B to avoid
+installing window rules and to share a world document through viewport-sized
+surfaces. Native canvas chunks remain an optimization option. Do not assume IPC
+synchronization is visually exact at 180 Hz.
 
 ## Verification and limitations
 
@@ -75,8 +75,8 @@ fractional scaling, fullscreen transitions, hotplug, and sustained performance.
 An empty input region establishes the client-side contract; unit tests and
 screenshots do not establish real input-routing acceptance.
 
-Phase 0 remains pending until those integration acceptance checks succeed.
-No full drawing engine should be implemented before that gate.
+The subsequent isolated native-input acceptance run below completed the initial
+integration gate. Physical-workstation checks remain part of MVP acceptance.
 
 ### Completed probe runs
 
