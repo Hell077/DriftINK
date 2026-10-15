@@ -1,4 +1,4 @@
-use driftink::{ipc, ipc::Result, wayland};
+use driftink::{app, control, ipc, ipc::Result, wayland};
 
 fn main() {
     if let Err(error) = run() {
@@ -9,6 +9,22 @@ fn main() {
 fn run() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
+        Some("run") => app::run(false),
+        Some("draw") => {
+            if control::socket_path()?.exists() && control::send("status").is_ok() {
+                println!("{}", control::send("enable")?);
+                Ok(())
+            } else {
+                app::run(true)
+            }
+        }
+        Some(
+            command @ ("toggle" | "enable" | "disable" | "status" | "quit" | "undo" | "redo"
+            | "save"),
+        ) => {
+            println!("{}", control::send(command)?);
+            Ok(())
+        }
         Some("doctor") => {
             let state = ipc::snapshot()?;
             println!("IPC: {}", ipc::socket_path()?.display());
@@ -38,7 +54,7 @@ fn run() -> Result<()> {
         }
         _ => {
             println!(
-                "Usage: driftink preview [seconds] | driftink doctor | driftink poc [canvas|overlay] [seconds]\nPhase 0 only: click-through test rectangle centered at world (0, 0).\nCanvas strategy requires the supplied driftwm rule. Overlay requires no rule."
+                "Usage: driftink run | draw | toggle | enable | disable | status | save | undo | redo | quit | doctor\nExperiments: driftink preview [seconds] | poc [canvas|overlay] [seconds]"
             );
             Ok(())
         }

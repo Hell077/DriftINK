@@ -20,6 +20,12 @@ pub struct Output {
 #[derive(Clone, Debug, Deserialize)]
 pub struct State {
     pub outputs: Vec<Output>,
+    #[serde(default)]
+    pub fullscreen: Vec<Fullscreen>,
+}
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct Fullscreen {
+    pub output: String,
 }
 
 pub fn socket_path() -> Result<PathBuf> {
@@ -68,6 +74,77 @@ pub fn snapshot() -> Result<State> {
     let mut line = String::new();
     connect("\"State\"")?.read_line(&mut line)?;
     parse(&line)?.ok_or_else(|| "missing State reply".into())
+}
+/// Coalesced writes on a persistent command socket; rendering never waits for replies.
+pub struct Commander(
+    std::sync::Arc<(
+        std::sync::Mutex<Option<serde_json::Value>>,
+        std::sync::Condvar,
+    )>,
+);
+impl Default for Commander {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl Commander {
+    pub fn new() -> Self {
+        use std::sync::{Arc, Condvar, Mutex};
+        let shared = Arc::new((Mutex::new(None::<serde_json::Value>), Condvar::new()));
+        let worker = shared.clone();
+        std::thread::spawn(move || {
+            let mut connection: Option<BufReader<UnixStream>> = None;
+            loop {
+                let command = {
+                    let (lock, wake) = &*worker;
+                    let Ok(mut slot) = lock.lock() else {
+                        break;
+                    };
+                    while slot.is_none() {
+                        let Ok(next) = wake.wait(slot) else {
+                            return;
+                        };
+                        slot = next;
+                    }
+                    slot.take().expect("command is present")
+                };
+                let result = (|| -> Result<()> {
+                    if connection.is_none() {
+                        let mut reader = connect("\"State\"")?;
+                        let mut ack = String::new();
+                        reader.read_line(&mut ack)?;
+                        connection = Some(reader);
+                    }
+                    let reader = connection.as_mut().ok_or("no command connection")?;
+                    reader
+                        .get_mut()
+                        .set_write_timeout(Some(std::time::Duration::from_secs(1)))?;
+                    reader
+                        .get_mut()
+                        .set_read_timeout(Some(std::time::Duration::from_secs(1)))?;
+                    writeln!(reader.get_mut(), "{command}")?;
+                    let mut reply = String::new();
+                    reader.read_line(&mut reply)?;
+                    if reply.is_empty() {
+                        return Err("command socket disconnected".into());
+                    }
+                    Ok(())
+                })();
+                if let Err(error) = result {
+                    eprintln!("driftink navigation: {error}");
+                    connection = None;
+                }
+            }
+        });
+        Self(shared)
+    }
+    pub fn send(&self, value: serde_json::Value) {
+        let (slot, wake) = &*self.0;
+        if let Ok(mut slot) = slot.lock() {
+            *slot = Some(value);
+            wake.notify_one();
+        }
+    }
 }
 #[cfg(test)]
 mod tests {

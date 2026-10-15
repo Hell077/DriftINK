@@ -9,6 +9,7 @@ use std::{
     env,
     fs::{self, File, OpenOptions},
     io::{Read, Write},
+    os::unix::fs::OpenOptionsExt,
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -100,6 +101,7 @@ pub fn save(path: &Path, document: &Document) -> Result<()> {
         .create(true)
         .truncate(true)
         .write(true)
+        .mode(0o600)
         .open(&temp)?;
     file.write_all(&bytes)?;
     file.sync_all()?;

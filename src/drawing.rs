@@ -39,7 +39,7 @@ impl Editor {
             document_id: document.document_id,
             tool: Tool::Pen,
             color: [203, 166, 247, 255],
-            width: 4.0,
+            width: 5.0,
             selected: BTreeSet::new(),
             dirty: false,
             next_id,
@@ -114,6 +114,7 @@ impl Editor {
         self.selected.clear();
     }
     pub fn delete_selected(&mut self) {
+        self.cancel();
         let before = self
             .selected
             .iter()
@@ -244,6 +245,19 @@ impl Editor {
             }
         }
     }
+    pub fn visit_preview(&self, mut visit: impl FnMut(&Object, Point)) {
+        match &self.gesture {
+            Some(Gesture::Draw(o)) => visit(o, [0.0, 0.0]),
+            Some(Gesture::Move {
+                originals, delta, ..
+            }) => {
+                for o in originals {
+                    visit(o, *delta);
+                }
+            }
+            _ => {}
+        }
+    }
     pub fn preview(&self) -> Vec<Object> {
         match &self.gesture {
             Some(Gesture::Draw(o)) => vec![o.clone()],
@@ -299,5 +313,19 @@ mod tests {
         assert_eq!(e.scene.objects[&1].points[0], [100.0, 200.0]);
         e.undo();
         assert_eq!(e.scene.objects[&1], original);
+    }
+    #[test]
+    fn deleting_during_a_move_cannot_resurrect_the_object_on_release() {
+        let mut e = Editor::new(Document::empty());
+        e.begin([0.0, 0.0], 1.0, false);
+        e.finish([20.0, 20.0], 1.0);
+        e.select_tool(Tool::Select);
+        e.begin([10.0, 10.0], 1.0, false);
+        e.motion([30.0, 30.0], 1.0);
+        e.delete_selected();
+        e.finish([30.0, 30.0], 1.0);
+        assert!(e.scene.objects.is_empty());
+        e.undo();
+        assert_eq!(e.scene.objects[&1].points[0], [0.0, 0.0]);
     }
 }

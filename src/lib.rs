@@ -1,6 +1,10 @@
+pub mod app;
 pub mod camera;
 pub mod canvas;
+pub mod control;
 pub mod drawing;
 pub mod ipc;
+pub mod render;
 pub mod storage;
+pub mod ui;
 pub mod wayland;
