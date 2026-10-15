@@ -5,15 +5,57 @@ rectangles, ellipses and a floating **Catppuccin Mocha sidebar**. One persistent
 world-space document is shared by all outputs. No compositor fork or window rule
 is needed for the application.
 
-## Start drawing
+## Install for your user
 
-Requires Rust 1.89+ (edition 2024), driftwm with wlr-layer-shell, libxkbcommon, and
-Noto Sans or DejaVu Sans installed in a standard system font directory.
+DriftInk currently targets **Linux / Wayland with driftwm** (validated against
+0.19.0). Other compositors are not supported: layer-shell alone is insufficient
+without driftwm camera IPC.
+
+Build prerequisites: Rust 1.89+ and Cargo, a C compiler/linker, pkg-config,
+libxkbcommon development files, and Python 3 for the installer. At runtime,
+install Noto Sans or DejaVu Sans in a standard system font directory.
+Dependencies are managed by your distribution; driftwm must already be installed.
+
+Download/extract the source archive, or clone the repository once its URL is
+available. From the project directory:
 
 ```sh
-cargo build --release
+python3 scripts/install-user.py
+driftink draw
+```
+
+The installer builds with `cargo build --release --locked`, installs the binary
+under `~/.local/bin`, and adds **DriftInk** to the application menu with an icon.
+Desktop files and icons go under `$XDG_DATA_HOME` or `~/.local/share`. The launcher
+uses an absolute executable path and works even if `~/.local/bin` is not in the
+session's PATH. Terminal users without that PATH entry can run:
+
+```sh
+~/.local/bin/driftink draw
+```
+
+No sudo, compositor edits, keybinding changes or autostart changes are needed.
+The same install command updates an existing installation; atomic replacement
+allows updating the binary while the previous process is running. Quit and reopen
+DriftInk to use the newly installed executable.
+
+For a custom location or a trusted prebuilt binary:
+
+```sh
+python3 scripts/install-user.py --prefix "$HOME/Applications/driftink"
+python3 scripts/install-user.py --binary /absolute/path/to/driftink
+```
+
+The prebuilt binary must match the target machine's architecture and compatible
+system libraries. No release binaries or distribution packages are published by
+the installer. For an uninstalled development build:
+
+```sh
+cargo build --release --locked
 ./target/release/driftink draw
 ```
+
+## Start drawing
 
 The sidebar appears on each available monitor. Choose a tool and drag with the
 left mouse button. Drawings autosave after completed operations. `Done` or
@@ -24,9 +66,9 @@ Fullscreen outputs keep normal input and hide the drawing controls.
 To reopen the tools from another terminal:
 
 ```sh
-./target/release/driftink enable
+driftink enable
 # Or toggle between drawing and navigation:
-./target/release/driftink toggle
+driftink toggle
 ```
 
 `draw` starts the process in drawing mode, or enables an existing process. `run`
@@ -59,27 +101,29 @@ Waybar, including in drawing mode. The sidebar shrinks to fit shorter viewports.
 ## CLI and optional keyboard binding
 
 ```sh
-./target/release/driftink status
-./target/release/driftink disable
-./target/release/driftink undo
-./target/release/driftink redo
-./target/release/driftink save
-./target/release/driftink quit
-./target/release/driftink doctor
+driftink status
+driftink disable
+driftink undo
+driftink redo
+driftink save
+driftink quit
+driftink doctor
 ```
 
 Runtime control uses a private Unix socket, never TCP. Duplicate processes cannot
 edit the same document. `doctor` prints each output's logical size and camera.
 
 For an optional compositor shortcut, merge this entry into the **existing**
-`[keybindings]` table, replacing the executable path for your checkout:
+`[keybindings]` table in `~/.config/driftwm/config.toml`:
 
 ```toml
-"super+shift+d" = "spawn /home/alex/RustroverProjects/DriftInk/target/release/driftink draw"
+"super+shift+d" = "spawn ~/.local/bin/driftink draw"
 ```
 
-Super+Shift+D does not conflict with this workstation's inspected overrides or
-version 0.19.0 defaults. Check your own bindings before adding it. No config,
+Super+Shift+D is free in the inspected version 0.19.0 defaults, but another user
+may already use it. Check existing bindings and adjust the executable path for
+a custom prefix. Validate with `driftwm --check-config`, then apply using
+`driftwm msg action reload-config`. No config,
 autostart entry or session service is installed automatically. You can add the
 absolute executable path followed by `run` to your session autostart yourself.
 
@@ -137,7 +181,19 @@ Earlier experiments are retained as `preview [seconds]` and
 current viewport. The canvas PoC requires the optional rule in
 [examples/poc-rule.toml](examples/poc-rule.toml); the drawing app does not.
 
-Removal: quit DriftInk, remove the build directory and any optional shortcut or
-autostart entry you added. Keep the data directory to preserve your drawings.
+## Uninstall
+
+Stop the application, then run from the source directory:
+
+```sh
+driftink quit
+python3 scripts/install-user.py --uninstall
+```
+
+Use the same `--prefix` and `--data-dir` overrides if you supplied them during
+installation. Uninstall removes only the executable, application launcher and
+icon. Drawings are kept. Remove any optional shortcut or autostart entry you
+added yourself. Deleting a development checkout does not delete an installed copy.
+
 See [architecture](docs/architecture.md), [Phase 0 evidence](docs/phase-0.md) and
 [roadmap](docs/roadmap.md).

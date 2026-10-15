@@ -13,7 +13,7 @@
 | 8 — CLI/integration | Core implemented | run/draw/enable/disable/toggle/status/save/undo/redo/quit/doctor; optional binding documented; import/export and autostart installer pending |
 | 9 — multi-monitor | Workstation acceptance pending | Both physical outputs expose usable cameras; per-output surfaces verified; drawing across monitors, fullscreen IDE and hotplug still need manual testing |
 | 10 — quality | Automated checks passing | Unit tests and native isolated integration; resource observations recorded; manual acceptance remains |
-| 11 — packaging/docs | Local build documented | Usage, architecture, configuration, troubleshooting, testing and removal provided; packaging/release not published |
+| 11 — packaging/docs | User installation implemented | Source installer, desktop launcher, icon, update and uninstall; distribution packages and release binaries not published |
 
 The application is now usable for drawing with a sidebar. The full MVP acceptance
 claim remains conditional on the physical-workstation tests above; advanced tools
